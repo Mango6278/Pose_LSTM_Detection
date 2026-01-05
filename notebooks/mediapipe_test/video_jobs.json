@@ -1,0 +1,12 @@
+[
+    {
+        "input": "videos/CarvingSkier.mp4",
+        "output": "output/carving_skier_out.mp4",
+        "label": "carving_skier"
+    },
+    {
+        "input": "random_missing_data.mp4",
+        "output": "output/random_missing_data.mp4",
+        "label": "idc which label"
+    }
+]
