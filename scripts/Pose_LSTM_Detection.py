@@ -3,7 +3,7 @@ Author: Tom Gelhorn, Mika Laubert
 Pose_LSTM_Detection.py (c) 2026
 Desc: description
 Created:  2026-01-07T08:18:20.984Z
-Modified: 2026-01-07T09:51:42.139Z
+Modified: 2026-01-07T10:08:04.409Z
 """
 
 import logging
@@ -18,8 +18,8 @@ from mediapipe.tasks.python import vision
 from pose_Utils import preprocess_landmarks, draw_landmarks_on_image
 from fileIo_Utils import load_video_jobs, save_dataset
 
-CONFIG_FILE = 'video_jobs.json'
-MODEL_PATH = 'pose_landmarker_full.task'
+CONFIG_FILE = 'conf/video_jobs.json'
+MODEL_PATH = 'model/pose_landmarker_full.task'
 OUTPUT_FILE = 'datasets/prototypingData/pose_dataset.npz'
 
 DEBUG_VISUALIZE = False # draws pose landmarks on video and saves it
