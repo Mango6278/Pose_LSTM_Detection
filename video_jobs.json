@@ -1,0 +1,57 @@
+[
+    {
+        "input": "datasets/prototypingData/videos/clap.mp4",
+        "output": "output/clap_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap2.mp4",
+        "output": "output/clap2_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap3.mp4",
+        "output": "output/clap3_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap4.mp4",
+        "output": "output/clap4_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap5.mp4",
+        "output": "output/clap5_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap6.mp4",
+        "output": "output/clap6_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/clap7.mp4",
+        "output": "output/clap7_out.mp4",
+        "label": "clap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/noClap.mp4",
+        "output": "output/noClap_out.mp4",
+        "label": "noClap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/noClap2.mp4",
+        "output": "output/noClap2_out.mp4",
+        "label": "noClap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/noClap3.mp4",
+        "output": "output/noClap3_out.mp4",
+        "label": "noClap"
+    },
+    {
+        "input": "datasets/prototypingData/videos/noClap4.mp4",
+        "output": "output/noClap4_out.mp4",
+        "label": "noClap"
+    }
+]
