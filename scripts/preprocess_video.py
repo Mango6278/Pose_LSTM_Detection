@@ -12,17 +12,18 @@ import cv2
 import mediapipe as mp
 import numpy as np
 import os
+import concurrent.futures
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-from pose_Utils import preprocess_landmarks, draw_landmarks_on_image
+from pose_Utils import preprocess_landmarks, draw_landmarks_on_image, compute_velocity
 from fileIo_Utils import load_video_jobs, save_dataset
 
 CONFIG_FILE = 'conf/video_jobs.json'
 MODEL_PATH = 'model/pose_landmarker_full.task'
-OUTPUT_FILE = 'datasets/prototypingData/pose_dataset.npz'
+OUTPUT_FILE = 'datasets/prototypingData/walk_dataset.npz'
 
-DEBUG_VISUALIZE = True # draws pose landmarks on video and saves it
+DEBUG_VISUALIZE = False # draws pose landmarks on video and saves it
 DEBUG_VISUALIZE_FOLDER = 'debug_visualizations/'
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -48,20 +49,13 @@ def handle_missing_pose(last_valid_pose):
     else:
         return np.zeros(33 * 4)
 
-def process_video_batch(video_jobs, detector):
-    dataset = []
-    
-    for i, job in enumerate(video_jobs):
-        print(f"Processing {i+1}/{len(video_jobs)}: {job.get('input')}")
-        
-        try:
-            result = process_single_video(job, detector)
-            if result:
-                dataset.append(result)
-        except Exception as e:
-            print(f"Error processing {job.get('input')}: {e}")
-            
-    return dataset
+def process_single_wrapper(job):
+    try:
+        with init_detector(MODEL_PATH) as detector:
+            return process_single_video(job, detector)
+    except Exception as e:
+        logging.error(f"Worker Error at {job.get('input')}: {e}")
+        return None
 
 def process_single_video(job_config, detector):
     input_path = job_config["input"]
@@ -92,6 +86,7 @@ def process_single_video(job_config, detector):
     frame_data = []
     frame_index = 0
     last_valid_feature = None
+    prev_loop_feature  = None
 
     while True:
         ret, frame = cap.read()
@@ -113,7 +108,13 @@ def process_single_video(job_config, detector):
             # Fallback
             feature_vector = handle_missing_pose(last_valid_feature)
 
-        frame_data.append(feature_vector)
+        velocity = compute_velocity(feature_vector, prev_loop_feature)
+        
+        # [Position (132), Velocity (132)] -> Total 264
+        combined_features = np.concatenate((feature_vector, velocity))
+        
+        frame_data.append(combined_features)
+        prev_loop_feature = feature_vector
 
         # Visualization
         if DEBUG_VISUALIZE and out:
@@ -141,21 +142,22 @@ def run_extraction_pipeline(video_jobs):
     dataset = []
     total = len(video_jobs)
     
-    logging.info(f"Stareting extraction for {total} videos...")
+    MAX_WORKERS = os.cpu_count() - 2 if os.cpu_count() > 2 else 1
+    
+    logging.info(f"Starting extraction for {total} videos on {MAX_WORKERS} cores...")
+    # paralell processing
+    with concurrent.futures.ProcessPoolExecutor(max_workers=MAX_WORKERS) as executor:
 
-    for i, job in enumerate(video_jobs):
-        logging.info(f"[{i+1}/{total}] Processing {job.get('input')}...")
-        
-        try:
-            with init_detector(MODEL_PATH) as detector:
-                result = process_single_video(job, detector)
-                
-            if result:
-                dataset.append(result)
-                
-        except Exception as e:
-            logging.error(f"Error processing {job.get('input')}: {e}")
-            traceback.print_exc()
+        future_to_job = {executor.submit(process_single_wrapper, job): job for job in video_jobs}        
+        for i, future in enumerate(concurrent.futures.as_completed(future_to_job)):
+            job = future_to_job[future]
+            try:
+                result = future.result()
+                if result:
+                    dataset.append(result)
+                logging.info(f"[{i+1}/{total}] Finished: {job.get('input')}")
+            except Exception as e:
+                logging.error(f"Exception at {job.get('input')}: {e}")
             
     return dataset
 
