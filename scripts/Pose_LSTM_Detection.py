@@ -22,7 +22,8 @@ CONFIG_FILE = 'conf/video_jobs.json'
 MODEL_PATH = 'model/pose_landmarker_full.task'
 OUTPUT_FILE = 'datasets/prototypingData/pose_dataset.npz'
 
-DEBUG_VISUALIZE = False # draws pose landmarks on video and saves it
+DEBUG_VISUALIZE = True # draws pose landmarks on video and saves it
+DEBUG_VISUALIZE_FOLDER = 'debug_visualizations/'
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -64,7 +65,9 @@ def process_video_batch(video_jobs, detector):
 
 def process_single_video(job_config, detector):
     input_path = job_config["input"]
-    output_path = job_config["output"]
+
+    parent_dir_path = os.path.dirname(input_path)
+    output_path = os.path.join(DEBUG_VISUALIZE_FOLDER, os.path.basename(parent_dir_path), os.path.basename(input_path))
 
     if not os.path.exists(input_path):
         logging.warning(f"File '{input_path}' not found. Skipping...")
