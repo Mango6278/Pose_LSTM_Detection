@@ -1,9 +1,9 @@
 """
 Author: Tom Gelhorn, Mika Laubert
-Pose_LSTM_Detection.py (c) 2026
+preprocess_video.py (c) 2026
 Desc: description
 Created:  2026-01-07T08:18:20.984Z
-Modified: 2026-01-07T10:08:04.409Z
+Modified: 2026-01-08T10:56:37.074Z
 """
 
 import logging
