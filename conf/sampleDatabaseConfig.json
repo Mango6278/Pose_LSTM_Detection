@@ -1,0 +1,6 @@
+[
+    {
+        "input": "datasets/yourDatabase/videos/trainingVideo.mp4",
+        "label": "trainingVideo"
+    }
+]
