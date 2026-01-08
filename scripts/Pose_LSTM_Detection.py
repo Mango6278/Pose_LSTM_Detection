@@ -170,6 +170,7 @@ def main():
         dataset = run_extraction_pipeline(video_jobs)
 
         if dataset:
+            os.makedirs(os.path.dirname(OUTPUT_FILE), exist_ok=True)
             save_dataset(dataset, OUTPUT_FILE)
         else:
             logging.warning("Dataset empty. Nothing saved.")
