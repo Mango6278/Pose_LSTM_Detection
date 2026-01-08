@@ -63,3 +63,11 @@ def draw_landmarks_on_image(rgb_image, detection_result):
             x2, y2 = int(end_point.x * width), int(end_point.y * height)
             cv2.line(annotated_image, (x1, y1), (x2, y2), (255, 255, 255), 2)
     return annotated_image
+
+def compute_velocity(current_features, previous_features):
+
+    if previous_features is None:
+        return np.zeros_like(current_features)
+    
+    velocity = current_features - previous_features
+    return velocity
