@@ -1,10 +1,11 @@
 """
-Author: Hello (World)
-poseUtils.py (c) 2026
+Author: Tom Gelhorn, Mika Laubert
+pose_Utils.py (c) 2026
 Desc: description
 Created:  2026-01-07T08:40:00.459Z
-Modified: 2026-01-07T09:07:43.788Z
+Modified: 2026-01-07T12:06:03.708Z
 """
+
 import numpy as np
 import cv2
 
