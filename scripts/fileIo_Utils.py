@@ -47,3 +47,10 @@ def save_dataset(dataset, filename="dataset.npz"):
         
     np.savez_compressed(filename, X=np.array(X, dtype=object), y=np.array(y), labels=unique_labels)
     print(f"Dataset saved at '{filename}'. Labels: {label_map}. Number of samples: {len(dataset)}")
+
+def load_config(path):
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Config file '{path}' not found.")
+        
+    with open(path, 'r') as f:
+        return json.load(f)

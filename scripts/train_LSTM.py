@@ -6,6 +6,8 @@ Created:  2026-01-07T12:06:33.826Z
 Modified: 2026-01-07T21:28:49.804Z
 """
 
+import logging
+import json
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
@@ -14,12 +16,12 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from sklearn.model_selection import train_test_split
-import logging
 
-DATASET_PATH = 'datasets/prototypingData/pose_dataset.npz'
-MODEL_SAVE_PATH = 'model/pose_lstm_model.keras'
-MAX_SEQ_LENGTH = 100  # Max number of frames per video
-NUM_FEATURES = 132    # 33 Landmarks * 4 (x, y, z, visibility)
+DATASET_PATH            = 'datasets/prototypingData/pose_dataset.npz'
+MODEL_SAVE_PATH         = 'model/pose_lstm_model.keras'
+MODEL_CONFIG_SAVE_PATH  = 'model/pose_lstm_model_config.json'
+MAX_SEQ_LENGTH          = 100  # Max number of frames per video
+NUM_FEATURES            = 132    # 33 Landmarks * 4 (x, y, z, visibility)
 
 callbacks = [
     EarlyStopping(patience=10, verbose=1, restore_best_weights=True, monitor='val_loss'),
@@ -124,6 +126,16 @@ def main():
     
     model.save(MODEL_SAVE_PATH)
     logging.info(f"Model saved at {MODEL_SAVE_PATH}")
+
+    config = {
+        "classes": class_names.tolist(),
+        "sequence_length": MAX_SEQ_LENGTH,
+        "num_features": NUM_FEATURES
+    }
+
+    with open(MODEL_CONFIG_SAVE_PATH, 'w') as f:
+        json.dump(config, f, indent=4)
+    logging.info(f"Class names saved at {MODEL_CONFIG_SAVE_PATH}")
 
     loss, accuracy = model.evaluate(X_test, y_test)
     logging.info(f"Test Accuracy: {accuracy*100:.2f}%")
