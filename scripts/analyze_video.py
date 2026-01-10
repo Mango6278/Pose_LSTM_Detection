@@ -13,13 +13,13 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
-from pose_Utils import preprocess_landmarks, draw_landmarks_on_image
+from pose_Utils import preprocess_landmarks, draw_landmarks_on_image, compute_velocity
 from fileIo_Utils import load_config
 
 MODEL_PATH          = 'model/pose_lstm_model.keras'
 MODEL_CONFIG_PATH   = 'model/pose_lstm_model_config.json'
 LANDMARKER_PATH     = 'model/pose_landmarker_full.task'
-INPUT_VIDEO         = 'datasets/prototypingData/videos/clapOutOfFrame.mp4'
+INPUT_VIDEO         = 'datasets/prototypingData/videos/VID_20260108_150759.mp4'
 OUTPUT_VIDEO        = 'datasets/prototypingData/analyzed_result.mp4'
 THRESHOLD           = 0.7 # above: show class
 
@@ -67,6 +67,8 @@ def main():
     
     print(f"Starting analysis for '{INPUT_VIDEO}'...")
 
+    prev_inference_feature = np.zeros(33 * 4)
+
     while cap.isOpened():
         ret, frame = cap.read()
         if not ret: break
@@ -79,11 +81,15 @@ def main():
         
         if detection_result.pose_landmarks:
             landmarks = detection_result.pose_landmarks[0]
-            features = preprocess_landmarks(landmarks)
+            base_features = preprocess_landmarks(landmarks)
         else:
-            features = np.zeros(33 * 4) # Zero-Feature-Vektor
+            base_features = np.zeros(33 * 4) # Zero-Feature-Vektor
         
-        sequence_buffer.append(features)
+        velocity = compute_velocity(base_features, prev_inference_feature)
+        full_features = np.concatenate((base_features, velocity))
+        
+        prev_inference_feature = base_features
+        sequence_buffer.append(full_features)
 
         if detection_result.segmentation_masks:
             mask = detection_result.segmentation_masks[0].numpy_view() # Shape (H, W, 1)
@@ -112,7 +118,7 @@ def main():
 
         # Prediction (buffer full?)
         if len(sequence_buffer) == seq_length:
-            # (1, 40, 132) -> Batch size 1
+            # (1, 40, 132*2) -> Batch size 1
             input_data = np.expand_dims(sequence_buffer, axis=0)
             
             prediction = model.predict(input_data, verbose=0)[0] # Prediction per class, e.g.: [0.1, 0.9, ...]
