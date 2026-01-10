@@ -20,8 +20,8 @@ from sklearn.model_selection import train_test_split
 DATASET_PATH            = 'datasets/prototypingData/pose_dataset.npz'
 MODEL_SAVE_PATH         = 'model/pose_lstm_model.keras'
 MODEL_CONFIG_SAVE_PATH  = 'model/pose_lstm_model_config.json'
-MAX_SEQ_LENGTH          = 100  # Max number of frames per video
-NUM_FEATURES            = 132    # 33 Landmarks * 4 (x, y, z, visibility)
+MAX_SEQ_LENGTH          = 15  # Max number of frames per video
+NUM_FEATURES            = 132*2
 
 callbacks = [
     EarlyStopping(patience=10, verbose=1, restore_best_weights=True, monitor='val_loss'),
@@ -105,7 +105,7 @@ def main():
     num_classes = len(class_names)
     
     # Train/Test Split (80% Training, 20% Validation)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
     # Data Augmentation
     X_train, y_train = augment_data(X_train, y_train)

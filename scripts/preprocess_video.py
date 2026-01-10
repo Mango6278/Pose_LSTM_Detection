@@ -1,9 +1,9 @@
 """
 Author: Tom Gelhorn, Mika Laubert
 preprocess_video.py (c) 2026
-Desc: description
+Desc: Feature extraction pipeline with FPS Normalization
 Created:  2026-01-07T08:18:20.984Z
-Modified: 2026-01-08T10:56:37.074Z
+Modified: 2026-01-10T15:12:38.652Z
 """
 
 import logging
@@ -25,6 +25,8 @@ OUTPUT_FILE = 'datasets/prototypingData/walk_dataset.npz'
 
 DEBUG_VISUALIZE = False # draws pose landmarks on video and saves it
 DEBUG_VISUALIZE_FOLDER = 'debug_visualizations/'
+
+TARGET_FPS = 30 
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -72,19 +74,28 @@ def process_single_video(job_config, detector):
         logging.error(f"Could not open '{input_path}'.")
         return None
 
-    fps = cap.get(cv2.CAP_PROP_FPS) or 30
+    source_fps = cap.get(cv2.CAP_PROP_FPS)
+    if source_fps <= 0 or np.isnan(source_fps):
+        source_fps = 30 # Fallback
+        logging.warning(f"FPS invalid for {input_path}, assuming 30 FPS.")
+
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     
+    fps_ratio = source_fps / TARGET_FPS
+
     # Video Writer
     out = None
     if DEBUG_VISUALIZE:
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
+        out = cv2.VideoWriter(output_path, fourcc, TARGET_FPS, (width, height))
     
     frame_data = []
-    frame_index = 0
+    
+    current_frame_idx = 0       # Counter for original frames
+    next_target_frame_idx = 0.0 # counter for target frames
+    
     last_valid_feature = None
     prev_loop_feature  = None
 
@@ -92,36 +103,36 @@ def process_single_video(job_config, detector):
         ret, frame = cap.read()
         if not ret: break
 
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
-        timestamp_ms = int((frame_index * 1000) / fps)
+        if current_frame_idx >= int(next_target_frame_idx):
+            
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+            
+            extracted_count = len(frame_data)
+            timestamp_ms = int((extracted_count * 1000) / TARGET_FPS)
 
-        # Detection
-        detection_result = detector.detect_for_video(mp_image, timestamp_ms)
-        
-        # Feature Extraction
-        if detection_result.pose_landmarks:
-            landmarks = detection_result.pose_landmarks[0]
-            feature_vector = preprocess_landmarks(landmarks)
-            last_valid_feature = feature_vector
-        else:
-            # Fallback
-            feature_vector = handle_missing_pose(last_valid_feature)
+            detection_result = detector.detect_for_video(mp_image, timestamp_ms)
+            
+            if detection_result.pose_landmarks:
+                landmarks = detection_result.pose_landmarks[0]
+                feature_vector = preprocess_landmarks(landmarks)
+                last_valid_feature = feature_vector
+            else:
+                feature_vector = handle_missing_pose(last_valid_feature)
 
-        velocity = compute_velocity(feature_vector, prev_loop_feature)
-        
-        # [Position (132), Velocity (132)] -> Total 264
-        combined_features = np.concatenate((feature_vector, velocity))
-        
-        frame_data.append(combined_features)
-        prev_loop_feature = feature_vector
+            velocity = compute_velocity(feature_vector, prev_loop_feature)
+            combined_features = np.concatenate((feature_vector, velocity))
+            
+            frame_data.append(combined_features)
+            prev_loop_feature = feature_vector
 
-        # Visualization
-        if DEBUG_VISUALIZE and out:
-            annotated_frame = draw_landmarks_on_image(rgb_frame, detection_result)
-            out.write(cv2.cvtColor(annotated_frame, cv2.COLOR_RGB2BGR))
+            if DEBUG_VISUALIZE and out:
+                annotated_frame = draw_landmarks_on_image(rgb_frame, detection_result)
+                out.write(cv2.cvtColor(annotated_frame, cv2.COLOR_RGB2BGR))
+            
+            next_target_frame_idx += fps_ratio
 
-        frame_index += 1
+        current_frame_idx += 1
 
     cap.release()
     if out: out.release()
@@ -130,7 +141,7 @@ def process_single_video(job_config, detector):
         logging.warning(f"No Pose found in {input_path}.")
         return None
 
-    logging.info(f"  -> Finished {input_path}: {len(frame_data)} Frames extracted.")
+    logging.info(f"  -> Finished {input_path}: {len(frame_data)} Frames extracted (Resampled {source_fps:.1f}->{TARGET_FPS}).")
     
     return {
         "label": job_config.get("label", "unknown"),
