@@ -1,12 +1,11 @@
 # Pose LSTM Detection
 
-<!-- Badges -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
-[![Paper](https://img.shields.io/badge/Paper-arXiv-b31b1b.svg)](https://arxiv.org/)
+[![Python 3.13.2](https://img.shields.io/badge/python-3.13.2-blue.svg)](https://www.python.org/downloads/)
+[![TensorFlow](https://img.shields.io/badge/TensorFlow-2.20.0-orange.svg)](https://www.tensorflow.org/)
+[![Status](https://img.shields.io/badge/Status-Academic_Project-green.svg)]()
 
-> **Short Description:** A concise 1-2 sentence tagline describing what the model does (e.g., "Real-time semantic segmentation for embedded devices using lightweight CNNs").
+> **Short Description:** A vision-based gesture recognition pipeline for automated systems in transportation, utilizing MediaPipe for pose estimation and a 2-layer LSTM for classification.
 
 ---
 
@@ -27,17 +26,20 @@
 
 ## 📖 Overview
 
-Provide a more detailed summary here. Explain the problem this project solves, the architecture used (e.g., Transformer, ResNet, GAN), and the context (e.g., "This is the official implementation of the paper '...'").
+This project addresses gesture-based human-machine interaction in transportation, specifically designed to allow Unmanned Aerial Vehicles (UAVs) and Autonomous Vehicles (AVs) to recognize human signals. The system processes RGB video input of any size and framerate.
 
-<p align="center">
-  <!-- Place a representative image or GIF here -->
-  <img src="assets/architecture_diagram.png" alt="Model Architecture" width="600">
-</p>
+The architecture follows a two-step procedure:
+1.  **Feature Extraction:** Videos are preprocessed using the MediaPipe framework to extract normalized body-landmark sequences.
+2.  **Classification:** A Long Short-Term Memory (LSTM) Neural Network predicts the human gesture based on the temporal dynamics of the landmarks.
+
+This implementation was developed as part of the "Machine Learning and Computer Vision" course (Winter 2025/2026) at DHBW Stuttgart.
 
 ## ✨ Key Features
-- **Feature 1:** Description (e.g., "Achieves 98% accuracy on CIFAR-10")
-- **Feature 2:** Description (e.g., "Optimized for edge deployment on NVIDIA Jetson")
-- **Feature 3:** Description (e.g., "Supports multi-GPU distributed training")
+- **High Accuracy:** Achieves a validation accuracy of 96.34% across 5 gesture classes.
+- Robust Normalization:** The model is invariant to input resolution, aspect ratio, and camera distance due to a translation and scaling pipeline based on torso size.
+- **Lightweight Architecture:** Utilizes a lightweight 2-layer stacked LSTM (64 units each) suitable for embedded systems.
+- **Negative Class Handling:** Includes a specific "Negative" class to reduce false positives by training on random movements that resemble target gestures (e.g., praying vs. clapping).
+- **Data Augmentation:** Implements Gaussian noise and random time shifts to prevent overfitting and ensure robustness against landmark detection jitter.
 
 ---
 
@@ -45,13 +47,6 @@ Provide a more detailed summary here. Explain the problem this project solves, t
 
 ```bash
 .
-├── assets/                 # Images, diagrams, and GIFs for README
-├── configs/                # Configuration files (YAML/JSON)
-├── data/                   # Dataset scripts (not raw data)
-├── models/                 # Model architecture definitions
-├── notebooks/              # Jupyter notebooks for exploration
-├── scripts/                # Shell scripts for training/evaluation
-├── utils/                  # Utility functions (logging, metrics)
-├── train.py                # Main training script
-├── infer.py                # Inference script
-└── requirements.txt        # Python dependencies
+├── conf/                   # Configuration files
+├── model/                  # LSTM architecture definitions
+├── scripts/                # Includes all Python scripts
