@@ -104,7 +104,7 @@ def main():
     X, y, class_names = load_and_preprocess_data()
     num_classes = len(class_names)
     
-    # Train/Test Split (80% Training, 20% Validation)
+    # Train/Test Split (90% Training, 10% Validation)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
     # Data Augmentation
