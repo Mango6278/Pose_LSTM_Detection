@@ -5,7 +5,7 @@
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-2.20.0-orange.svg)](https://www.tensorflow.org/)
 [![Status](https://img.shields.io/badge/Status-Academic_Project-green.svg)]()
 
-> **Short Description:** A vision-based gesture recognition pipeline for automated systems in transportation, utilizing MediaPipe for pose estimation and a 2-layer LSTM for classification.
+> A vision-based gesture recognition pipeline for automated systems in transportation, utilizing MediaPipe for pose estimation and a 2-layer LSTM for classification.
 
 ---
 
